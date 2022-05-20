@@ -1,5 +1,6 @@
 import os
 import re
+import sys
 
 
 TASK_SIGN_NUMBER = 4
@@ -147,6 +148,51 @@ def delete_zeroes():
         print("\nNo files to update...")
 
 
+def update_taskname(string):
+    string = string.strip().lower().replace(' ', '-')
+    return string
+
+
+def create_task():
+    # create directory if not exists
+    current_path = os.path.abspath(os.getcwd())
+    directory = input("\nEnter directory: ").strip()
+    dirpath = os.path.join(current_path, directory)
+    if not os.path.exists(dirpath):
+        print("Creating directory...")
+        os.makedirs(directory)
+    print(dirpath)
+
+    # constructing task
+    task_number = input("\nEnter task number: ").strip()
+
+    task_name = input("\nEnter task name: ").strip()
+    task_name = update_taskname(task_name)
+
+    task_extension = input("\nEnter task extension: ").strip()
+
+    taskfile = task_number + "." + task_name + "." + task_extension
+    taskpath = os.path.join(current_path, directory, taskfile)
+    print(taskpath)
+
+    # creating file
+    if (os.path.exists(taskpath)):
+        print("\nFile already exists")
+        result = input("Do you want to rewrite file (y/n): ").strip().lower()
+        if not (len(result) and (result == "y" or result == "yes")):
+            print("Aborting...")
+            return
+
+    file = open(taskpath, "w")
+    print("\nEnter the content. <C-D> to EOF:")
+
+    # entering the content of file
+    input_str = sys.stdin.read()
+    file.write(input_str)
+    print("\nDone.")
+    file.flush()
+
+
 def menu():
     menu_dict = []
     menu_dict.append({
@@ -156,6 +202,10 @@ def menu():
     menu_dict.append({
         "description": "Remove leading zeroes from filename",
         "function": delete_zeroes
+        })
+    menu_dict.append({
+        "description": "Create task file",
+        "function": create_task
         })
 
     for i in range(len(menu_dict)):
