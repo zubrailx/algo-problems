@@ -7,6 +7,11 @@ TASK_SIGN_NUMBER = 4
 PATTERN = "(.+?)\\.(.+?)\\.(.+)"
 
 
+def check_question(message):
+    result = input(message).strip().lower()
+    return (len(result) and (result == "y" or result == "yes"))
+
+
 class FileNameParts:
     def __init__(self, number, name, extension, delimeter="."):
         self.number = number
@@ -69,26 +74,23 @@ def rename():
             max_length = len(oldfile)
 
     # ask for update
-    if (len(rename_pairs)):
-        print("\nList of files to update: ")
-        for oldfile, newfile in rename_pairs:
-            print(oldfile + (" " * (max_length - len(oldfile))) + " -> " + newfile)
-
-        result = input("\nUpdate (y/n): ").strip().lower()
-        if (len(result) and (result == "y" or result == "yes")):
-            result = True
-        else:
-            print("\nAborting...")
-            result = False
-
-        if (result is True):
-            print("\nUpdating...")
-            for oldfile, newfile in rename_pairs:
-                os.rename(oldfile, newfile)
-                print(newfile)
-            input("\nDone...")
-    else:
+    if (not len(rename_pairs)):
         print("\nNo files to update...")
+        return
+
+    print("\nList of files to update: ")
+    for oldfile, newfile in rename_pairs:
+        print(oldfile + (" " * (max_length - len(oldfile))) + " -> " + newfile)
+
+    if (not check_question("\nUpdate (y/n): ")):
+        print("\nAborting...")
+        return
+
+    print("\nUpdating...")
+    for oldfile, newfile in rename_pairs:
+        os.rename(oldfile, newfile)
+        print(newfile)
+    input("\nDone...")
 
 
 def remove_leading_zeroes(string):
@@ -126,26 +128,23 @@ def delete_zeroes():
             max_length = len(oldfile)
 
     # ask for update
-    if (len(rename_pairs)):
-        print("\nList of files to update: ")
-        for oldfile, newfile in rename_pairs:
-            print(oldfile + (" " * (max_length - len(oldfile))) + " -> " + newfile)
-
-        result = input("\nUpdate (y/n): ").strip().lower()
-        if (len(result) and (result == "y" or result == "yes")):
-            result = True
-        else:
-            print("\nAborting...")
-            result = False
-
-        if (result is True):
-            print("\nUpdating...")
-            for oldfile, newfile in rename_pairs:
-                os.rename(oldfile, newfile)
-                print(newfile)
-            input("\nDone...")
-    else:
+    if (not len(rename_pairs)):
         print("\nNo files to update...")
+        return
+
+    print("\nList of files to update: ")
+    for oldfile, newfile in rename_pairs:
+        print(oldfile + (" " * (max_length - len(oldfile))) + " -> " + newfile)
+
+    if (not check_question("\nUpdate (y/n): ")):
+        print("\nAborting...")
+        return
+
+    print("\nUpdating...")
+    for oldfile, newfile in rename_pairs:
+        os.rename(oldfile, newfile)
+        print(newfile)
+    input("\nDone...")
 
 
 def update_taskname(string):
@@ -159,7 +158,10 @@ def create_task():
     directory = input("\nEnter directory: ").strip()
     dirpath = os.path.join(current_path, directory)
     if not os.path.exists(dirpath):
-        print("Creating directory...")
+        if (not check_question("\nDo you want to create directory (y/n): ")):
+            print("\nAborting...")
+            return
+        print("\nCreating directory...")
         os.makedirs(directory)
     print(dirpath)
 
@@ -178,9 +180,8 @@ def create_task():
     # creating file
     if (os.path.exists(taskpath)):
         print("\nFile already exists")
-        result = input("Do you want to rewrite file (y/n): ").strip().lower()
-        if not (len(result) and (result == "y" or result == "yes")):
-            print("Aborting...")
+        if (not check_question("Do you want to rewrite file (y/n): ")):
+            print("\nAborting...")
             return
 
     file = open(taskpath, "w")
@@ -189,8 +190,8 @@ def create_task():
     # entering the content of file
     input_str = sys.stdin.read()
     file.write(input_str)
-    print("\nDone.")
     file.flush()
+    print("\nDone.", "Characters written:", len(input_str))
 
 
 def menu():
