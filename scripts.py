@@ -5,11 +5,8 @@ import sys
 
 TASK_SIGN_NUMBER = 4
 PATTERN = "(.+?)\\.(.+?)\\.(.+)"
-
-
-def check_question(message):
-    result = input(message).strip().lower()
-    return (len(result) and (result == "y" or result == "yes"))
+# replace '#' with number
+SEARCH_PATTERN = "(0*#)\\.(.+?)\\.(.+)"
 
 
 class FileNameParts:
@@ -21,6 +18,14 @@ class FileNameParts:
 
     def get_filename(self):
         return self.number + self.delimeter + self.name + self.delimeter + self.extension
+def check_question(message):
+    result = input(message).strip().lower()
+    return (len(result) and (result == "y" or result == "yes"))
+
+
+class DirectoryDoesNotExistException(Exception):
+    pass
+
 
 
 def update_number(string, number):
@@ -39,15 +44,61 @@ def get_parts_of_filename(file):
     else:
         return None
 
+def remove_leading_zeroes(string):
+    i = 0
+    while (i < len(string) and string[i] == '0'):
+        i += 1
+    return string[i:]
+
+def update_taskname(string):
+    string = string.strip().lower().replace(' ', '-')
+    return string
+
+def get_directory_path_or_create(directory, current_path=None):
+    if (current_path is None):
+        current_path = os.path.abspath(os.getcwd())
+
+    dirpath = os.path.join(current_path, directory)
+    if not os.path.exists(dirpath):
+        if (not check_question("\nDo you want to create directory (y/n): ")):
+            print("\nAborting...")
+            return None
+        else:
+            print("\nCreating directory...")
+            os.makedirs(directory)
+    return dirpath
+
+
+def get_files_from_directory(directory, current_path=None):
+    if (current_path is None):
+        current_path = os.path.abspath(os.getcwd())
+
+    path = os.path.join(current_path, directory)
+    if not (os.path.exists(path)):
+        raise DirectoryDoesNotExistException(f"Directory '{path}' does not exist.")
+    filenames = [f for f in os.listdir(path) if os.path.isfile(os.path.join(path, f))]
+    return filenames
+
+def get_directory_path(directory, current_path=None):
+    if (current_path is None):
+        current_path = os.path.abspath(os.getcwd())
+
+    dirpath = os.path.join(current_path, directory)
+    if not os.path.exists(dirpath):
+        raise DirectoryDoesNotExistException(f"Directory '{dirpath}' does not exist.")
+    return dirpath
+
+
 
 def rename():
     # get all files from directory
     current_path = ""  
     # current_path = os.path.abspath(os.getcwd())
 
-    directory = input("Enter the directory to format: ")
-    path = os.path.join(current_path, directory)
-    filenames = [f for f in os.listdir(path) if os.path.isfile(os.path.join(path, f))]
+    # get files from directory
+    directory = input("\nEnter the directory to format: ")
+    filenames = get_files_from_directory(directory, current_path)
+    dirpath = os.path.join(current_path, directory)
     
     # get number of signs
     number_of_signs = TASK_SIGN_NUMBER
@@ -62,8 +113,8 @@ def rename():
          if (fileparts is not None) and (len(fileparts.number) < number_of_signs):
              fileparts.number = update_number(fileparts.number, number_of_signs)
              # also add directory
-             oldfile = os.path.join(path, file)
-             newfile = os.path.join(path, fileparts.get_filename())
+             oldfile = os.path.join(dirpath, file)
+             newfile = os.path.join(dirpath, fileparts.get_filename())
              rename_pairs.append((oldfile, newfile))
             
     # update filenames
@@ -93,11 +144,6 @@ def rename():
     input("\nDone...")
 
 
-def remove_leading_zeroes(string):
-    i = 0
-    while (i < len(string) and string[i] == '0'):
-        i += 1
-    return string[i:]
 
 
 def delete_zeroes():
@@ -105,9 +151,10 @@ def delete_zeroes():
     current_path = ""  
     # current_path = os.path.abspath(os.getcwd())
 
-    directory = input("Enter the directory to format: ")
-    path = os.path.join(current_path, directory)
-    filenames = [f for f in os.listdir(path) if os.path.isfile(os.path.join(path, f))]
+    # get files from directory
+    directory = input("\nEnter the directory to format: ")
+    filenames = get_files_from_directory(directory, current_path)
+    dirpath = os.path.join(current_path, directory)
     
     # create list to update files (without directory)
     rename_pairs = []
@@ -116,8 +163,8 @@ def delete_zeroes():
          if (fileparts is not None) and (fileparts.number != "") and (fileparts.number[0] == '0'):
              fileparts.number = remove_leading_zeroes(fileparts.number)
              # also add directory
-             oldfile = os.path.join(path, file)
-             newfile = os.path.join(path, fileparts.get_filename())
+             oldfile = os.path.join(dirpath, file)
+             newfile = os.path.join(dirpath, fileparts.get_filename())
              rename_pairs.append((oldfile, newfile))
             
     # update filenames
@@ -144,26 +191,20 @@ def delete_zeroes():
     for oldfile, newfile in rename_pairs:
         os.rename(oldfile, newfile)
         print(newfile)
-    input("\nDone...")
+    input("\nDone.")
 
 
-def update_taskname(string):
-    string = string.strip().lower().replace(' ', '-')
-    return string
 
 
 def create_task():
-    # create directory if not exists
+    # get directory
     current_path = os.path.abspath(os.getcwd())
     directory = input("\nEnter directory: ").strip()
-    dirpath = os.path.join(current_path, directory)
-    if not os.path.exists(dirpath):
-        if (not check_question("\nDo you want to create directory (y/n): ")):
-            print("\nAborting...")
-            return
-        print("\nCreating directory...")
-        os.makedirs(directory)
-    print(dirpath)
+    dirpath = get_directory_path_or_create(directory, current_path)
+    if (dirpath is None):
+        return
+    else:
+        print(dirpath)
 
     # constructing task
     task_number = input("\nEnter task number: ").strip()
@@ -194,6 +235,51 @@ def create_task():
     print("\nDone.", "Characters written:", len(input_str))
 
 
+def update_task_by_number():
+    # create directory if not exists
+    current_path = ""
+    # current_path = os.path.abspath(os.getcwd())
+    directory = input("\nEnter directory: ").strip()
+    dirpath = get_directory_path(directory, current_path)
+
+    # constructing task
+    task_number = input("\nEnter task number: ").strip()
+
+    # find task by number
+    filenames = get_files_from_directory(directory, current_path)
+    # regex
+    filematch = []
+    new_pattern = SEARCH_PATTERN.replace('#', task_number)
+    for file in filenames:
+        sresult = re.search(new_pattern, file)
+        if (sresult is not None):
+            filematch.append(file)
+
+    if (len(filematch) == 0):
+        print("No files found.")
+        print("Aborting...") 
+        return
+    elif (len(filematch) > 1):
+        print("Several files found: ")
+        for i in range(len(filematch)):
+            print(f"{i + 1}) {filematch[i]}")
+        result = int(input("Select one: "))
+        taskpath = filematch[result - 1]
+    else:
+        taskpath = filematch[0]
+    taskpath = os.path.join(dirpath, taskpath)
+    print("\n" + taskpath) 
+
+    file = open(taskpath, "w")
+    print("\nEnter the content. <C-D> to EOF:")
+
+    # entering the content of file
+    input_str = sys.stdin.read()
+    file.write(input_str)
+    file.flush()
+    print("\nDone.", "Characters written:", len(input_str))
+
+
 def menu():
     menu_dict = []
     menu_dict.append({
@@ -208,6 +294,10 @@ def menu():
         "description": "Create task file",
         "function": create_task
         })
+    menu_dict.append({
+        "description": "Update task file by number",
+        "function": update_task_by_number
+        })
 
     for i in range(len(menu_dict)):
         print(str(i + 1) + ") " + menu_dict[i]["description"])
@@ -220,13 +310,14 @@ def menu():
 
 
 def main():
-    menu()
+    try:
+        menu()
+    except (KeyboardInterrupt, ValueError, IndexError, EOFError, DirectoryDoesNotExistException) as e:
+        print(str(e))
+        print("\nAborting...")
 
 
 if __name__ == "__main__":
-    try:
-        main()
-    except (KeyboardInterrupt, ValueError):
-        print("\nAborting...")
+    main()
 
 
