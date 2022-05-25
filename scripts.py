@@ -18,15 +18,15 @@ class FileNameParts:
 
     def get_filename(self):
         return self.number + self.delimeter + self.name + self.delimeter + self.extension
-def check_question(message):
-    result = input(message).strip().lower()
-    return (len(result) and (result == "y" or result == "yes"))
 
 
 class DirectoryDoesNotExistException(Exception):
     pass
 
 
+def check_question(message):
+    result = input(message).strip().lower()
+    return (result == "y" or result == "yes" or result == "")
 
 def update_number(string, number):
     if (len(string) < number):
@@ -89,7 +89,6 @@ def get_directory_path(directory, current_path=None):
     return dirpath
 
 
-
 def rename():
     # get all files from directory
     current_path = ""  
@@ -144,8 +143,6 @@ def rename():
     input("\nDone...")
 
 
-
-
 def delete_zeroes():
     # get all files from directory
     current_path = ""  
@@ -192,8 +189,6 @@ def delete_zeroes():
         os.rename(oldfile, newfile)
         print(newfile)
     input("\nDone.")
-
-
 
 
 def create_task():
@@ -319,5 +314,4 @@ def main():
 
 if __name__ == "__main__":
     main()
-
 
