@@ -3,11 +3,12 @@ import re
 import sys
 
 
-TASK_SIGN_NUMBER = 4
 PATTERN = "(.+?)\\.(.+?)\\.(.+)"
 # replace '#' with number
 SEARCH_PATTERN = "(0*#)\\.(.+?)\\.(.+)"
 
+DEFAULT_TASK_SIGN_NUMBER = 4
+DEFAULT_DIRECTORY = "leetcode"
 
 class FileNameParts:
     def __init__(self, number, name, extension, delimeter="."):
@@ -100,7 +101,7 @@ def rename():
     dirpath = os.path.join(current_path, directory)
     
     # get number of signs
-    number_of_signs = TASK_SIGN_NUMBER
+    number_of_signs = DEFAULT_TASK_SIGN_NUMBER
     cnt = input(f"\nEnter number of signs to format (DEFAULT={number_of_signs}): ")
     if (cnt.strip() != ""):
         number_of_signs = int(cnt)
@@ -194,7 +195,10 @@ def delete_zeroes():
 def create_task():
     # get directory
     current_path = os.path.abspath(os.getcwd())
-    directory = input("\nEnter directory: ").strip()
+    directory = input(f"\nEnter directory (DEFAULT={DEFAULT_DIRECTORY}): ").strip()
+    if directory == "":
+        directory = DEFAULT_DIRECTORY
+
     dirpath = get_directory_path_or_create(directory, current_path)
     if (dirpath is None):
         return
