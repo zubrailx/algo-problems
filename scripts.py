@@ -52,7 +52,7 @@ def remove_leading_zeroes(string):
     return string[i:]
 
 def update_taskname(string):
-    string = string.strip().lower().replace(' ', '-')
+    string = string.strip().lower().replace(' ', '-').replace('/','-')
     return string
 
 def get_directory_path_or_create(directory, current_path=None):
