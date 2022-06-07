@@ -1,3 +1,4 @@
+/*
 // algorithm using queue 
 
 void print_array(vector<int>& arr) {
@@ -41,6 +42,28 @@ public:
     }
   }
 };
+*/
 
+// new solution
+class Solution {
+public:
+  void merge(vector<int>& nums1, int m, vector<int>& nums2, int n) {
+    int i = m - 1, j = n - 1, p = m + n - 1;
+    for (; i >= 0 && j >= 0; --p) {
+      if (nums1[i] >= nums2[j]) {
+        nums1[p] = nums1[i];
+        --i;
+      } else {
+        nums1[p] = nums2[j];
+        --j;
+      }
+    }
+    while (i >= 0) {
+      nums1[p--] = nums1[i--];
+    }
+    while (j >= 0) {
+      nums1[p--] = nums2[j--];
+    }
+  }
+};
 
-// oh, it could be done from ent the end of array... without queue
